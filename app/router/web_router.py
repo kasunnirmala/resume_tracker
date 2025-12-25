@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from app.controller.web.jobs_controller import router as jobs_controller
+from app.controller.web.applications_controller import router as applications_controller
 
 web_router = APIRouter(
     prefix="/api/web",
@@ -7,3 +8,4 @@ web_router = APIRouter(
 )
 
 web_router.include_router(jobs_controller)
+web_router.include_router(applications_controller)

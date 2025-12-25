@@ -11,6 +11,9 @@ class JobsRepository(BaseRepository):
     def get_all_jobs(self):
         return self.collection.stream()
 
+    def get_job_by_id(self, job_id : str):
+        return self.collection.document(job_id).get()
+
     def create_job(self, job: JobModel) -> str:
         doc_ref = self.collection.document()
         payload = {
