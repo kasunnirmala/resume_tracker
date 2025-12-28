@@ -8,5 +8,5 @@ search_service = SearchService()
 
 
 @router.get("/")
-def get_all_applications_mobile():
+def get_all_applications():
     return get_all_applications()

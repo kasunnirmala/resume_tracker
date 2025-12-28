@@ -17,3 +17,16 @@ APPLICATION_MAPPINGS = {
         "job.job_description": {"type": "text", "fields": {"keyword": {"type": "keyword"}}}
     }
 }
+
+APPLICATION_VECTOR_MAPPINGS = {
+    "properties": {
+        "id": {"type": "text"},
+        "content": {"type": "text"},
+        "embedding": {
+            "type": "dense_vector",
+            # "dims": 384,
+            "index": True,
+            "similarity": "cosine"
+        },
+    }
+}

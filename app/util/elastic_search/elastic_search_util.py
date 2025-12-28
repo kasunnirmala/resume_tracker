@@ -3,10 +3,14 @@ from typing import Iterable, Dict, Optional, List, Any, Mapping
 from elastic_transport import ObjectApiResponse
 from elasticsearch import Elasticsearch, NotFoundError
 from elasticsearch.helpers import bulk
+
+from app.modules.AI.helpers.vectorizer import text_embeddings
+
+
 class ElasticSearchUtil:
     def __init__(
             self,
-            index_name: str ,
+            index_name: str,
             host: str = "http://localhost:9200",
             auth: Optional[tuple] = None,
     ):
@@ -34,7 +38,6 @@ class ElasticSearchUtil:
         if self.client.indices.exists(index=self.index_name):
             self.client.indices.delete(index=self.index_name)
 
-
     def upsert(self, doc_id: str, document: Dict):
         self.client.index(
             index=self.index_name,
@@ -47,7 +50,6 @@ class ElasticSearchUtil:
             self.client.delete(index=self.index_name, id=doc_id)
         except NotFoundError:
             pass
-
 
     def bulk_upsert(self, documents: Iterable[Dict]):
         actions = []
@@ -65,20 +67,17 @@ class ElasticSearchUtil:
 
         bulk(self.client, actions)
 
-
     def rebuild(self, documents: Iterable[Dict], mappings: Dict):
         self.delete_index()
         self.ensure_index(mappings)
         self.bulk_upsert(documents)
-
-
 
     def search(
             self,
             query: Dict,
             from_: int = 0,
             size: int = 10,
-            sort: Optional[ Mapping[str, Any]] = None,
+            sort: Optional[Mapping[str, Any]] = None,
             source: Optional[List[str]] = None,
     ) -> ObjectApiResponse[Any]:
         body = {
@@ -112,9 +111,7 @@ class ElasticSearchUtil:
                 "type": "cross_fields",
             }
         }
-
         res = self.search(query=query, from_=from_, size=size)
-
         return [hit["_source"] for hit in res["hits"]["hits"]]
 
     def search_with_filters(
@@ -140,6 +137,27 @@ class ElasticSearchUtil:
             query=query,
         )
         return res["count"]
+
+    def search_vectors_knn(self, query: str, embed_field: str, k: int = 5):
+        query_vector = text_embeddings(query)
+        res = self.client.search(
+            index=self.index_name,
+            knn={
+                "field": embed_field,
+                "query_vector": query_vector,
+                "k": k,
+                "num_candidates": 100
+            },
+            _source=["content"]
+        )
+
+        return [
+            {
+                "score": hit["_score"],
+                "content": hit["_source"]["content"],
+            }
+            for hit in res["hits"]["hits"]
+        ]
 
     # def test_connection(self):
     #     try:
