@@ -2,3 +2,7 @@ pydantic
 fastapi
 uvicorn
 firebase-admin
+python-multipart
+elasticsearch==8.12.0
+pandas
+numpy

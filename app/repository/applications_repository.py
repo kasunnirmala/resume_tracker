@@ -1,5 +1,6 @@
+from google.cloud.firestore_v1.field_path import FieldPath
+
 from app.models.application_model import ApplicationModel
-from app.models.job_model import JobModel
 from app.repository.base_repository import BaseRepository
 
 
@@ -11,6 +12,9 @@ class ApplicationsRepository(BaseRepository):
 
     def get_all_applications(self):
         return self.collection.stream()
+
+    def get_by_ids(self, ids: list[str]):
+        return self.collection.where(FieldPath.document_id(), 'in', ids).stream() if ids else []
 
     def create_application(self, application: ApplicationModel) -> str:
         doc_ref = self.collection.document()
